@@ -5,6 +5,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Diagnostics;
+using FlatPhysicsEngineFor2D;
 
 namespace FlatGameFor2D
 {
@@ -15,6 +17,10 @@ namespace FlatGameFor2D
 		private Sprites sprites;
 		private Shapes shapes;
 		private Camera camera;
+
+
+		private FlatVector vectorA = new FlatVector(3f, 4f);
+
 
 		public Game1()
 		{
@@ -31,6 +37,7 @@ namespace FlatGameFor2D
 
 		protected override void Initialize()
 		{
+
 			FlatUtil.SetRelativeBackBufferSize(this.graphics, 0.85f);
 
 			this.screen = new Screen(this, 1280, 768);
@@ -80,8 +87,13 @@ namespace FlatGameFor2D
 			this.screen.Set();
 			this.GraphicsDevice.Clear(new Color(50, 60, 70));
 
+			FlatVector normarlized = FlatPhysicsEngineFor2D.FlathMath.Normalize(this.vectorA);
+
 			this.shapes.Begin(this.camera);
-			this.shapes.DrawCircle(0, 0, 32, 32, Color.White);
+			//this.shapes.DrawCircle(0, 0, 32, 32, Color.White);
+			this.shapes.DrawLine(Vector2.Zero, FlatConverter.ToVector2(this.vectorA), Color.Red);
+			this.shapes.DrawLine(Vector2.Zero, FlatConverter.ToVector2(normarlized), Color.Blue);
+			this.shapes.DrawCircle(Vector2.Zero, 1f, 24, Color.White);
 			this.shapes.End();
 
 			this.screen.Unset();

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlatGameFor2D", "FlatGameFor2D\FlatGameFor2D.csproj", "{BAA11731-EF5C-4296-9139-43963AE67467}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlatPhysicsEngineFor2D", "..\FlatPhysicsEngineFor2D\FlatPhysicsEngineFor2D\FlatPhysicsEngineFor2D.csproj", "{93503726-CA7E-463E-3113-A8AD624647F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{BAA11731-EF5C-4296-9139-43963AE67467}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAA11731-EF5C-4296-9139-43963AE67467}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BAA11731-EF5C-4296-9139-43963AE67467}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93503726-CA7E-463E-3113-A8AD624647F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93503726-CA7E-463E-3113-A8AD624647F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93503726-CA7E-463E-3113-A8AD624647F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93503726-CA7E-463E-3113-A8AD624647F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
