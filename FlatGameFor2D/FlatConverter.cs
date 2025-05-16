@@ -12,5 +12,24 @@ namespace FlatGameFor2D
 		{
 			return new Vector2(vector.X, vector.Y);
 		}
+
+
+		public static void ToVector2Array(FlatVector[] src, ref Vector2[] dst) 
+		{
+			if (dst is null || src.Length != dst.Length) 
+			{
+				dst = new Vector2[src.Length];
+			}
+
+			for (int i = 0; i < src.Length; i++)
+			{
+				FlatVector vector = src[i];
+				dst[i] = new Vector2(vector.X, vector.Y);
+			}
+
+		}
+			
 	}
+
+
 }

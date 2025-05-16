@@ -24,6 +24,10 @@ namespace FlatGameFor2D
 		private List<FlatBody> bodyList;
 		private Color[] colors;
 
+
+		private Vector2[] vertexBuffer;
+
+
 		public Game1()
 		{
 			this.graphics = new GraphicsDeviceManager(this);
@@ -61,6 +65,7 @@ namespace FlatGameFor2D
 			{
 				int type = RandomHelper.RandomInteger(0, 2);
 				type = (int)ShapeType.Circle; // TODO: remove this line to use random shape type
+				type = (int)ShapeType.Box; // TODO: remove this line to use random shape type
 
 				FlatBody body = null;
 
@@ -77,7 +82,7 @@ namespace FlatGameFor2D
 				}
 				else if (type == (int)ShapeType.Box)
 				{
-					if (!FlatBody.CreateBoxBody(new FlatVector(x, y), 2f, 0.5f, false, 1f, 1f, out body, out string errorMessage))
+					if (!FlatBody.CreateBoxBody(new FlatVector(x, y), 2f, 0.5f, false, 2f, 2f, out body, out string errorMessage))
 					{
 						throw new Exception();
 					}
@@ -142,6 +147,14 @@ namespace FlatGameFor2D
 				}
 			}
 
+			for (int i = 0; i < this.bodyList.Count; i++)
+			{
+				FlatBody body = this.bodyList[i];
+				body.Rotate(MathF.PI / 180f * 2f * FlatUtil.GetElapsedTimeInSeconds(gameTime));
+			}
+
+
+#if false
 			for (int i = 0; i < this.bodyList.Count -1 ; i++)
 			{
 				FlatBody bodyA = this.bodyList[i];
@@ -157,7 +170,7 @@ namespace FlatGameFor2D
 					}
 				}
 			}
-
+#endif
 
 
 			base.Update(gameTime);
@@ -180,11 +193,13 @@ namespace FlatGameFor2D
 				if (body.shapeType is ShapeType.Circle)
 				{
 					shapes.DrawCircleFill(position, body.radius, 26, colors[i]);
-					shapes.DrawCircle(position, body.radius, 26, Color.Red);
+					shapes.DrawCircle(position, body.radius, 26, Color.Black);
 				}
 				else if (body.shapeType is ShapeType.Box)
 				{
-					this.shapes.DrawBox(position, body.width, body.height, 26, Color.Blue);
+					FlatConverter.ToVector2Array(body.GetTransformedVertices(), ref this.vertexBuffer);
+					shapes.DrawPolygonFill(this.vertexBuffer, body.triangles, this.colors[i]);
+					shapes.DrawPolygon(this.vertexBuffer, Color.White);
 				}
 				
 			}
