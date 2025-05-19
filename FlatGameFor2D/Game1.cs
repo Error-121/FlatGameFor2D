@@ -56,7 +56,7 @@ namespace FlatGameFor2D
 			this.camera.GetExtents(out float left, out float right, out float top, out float bottom);
 			
 			
-			int bodyCount = 10;
+			int bodyCount = 20;
 			float padding = MathF.Abs(right - left) * 0.05f;
 
 			this.world = new FlatWorld();
@@ -136,7 +136,7 @@ namespace FlatGameFor2D
 
 				float dx = 0f;
 				float dy = 0f;
-				float forceMagnitude = 8f;
+				float forceMagnitude = 24f;
 
 				if (keyboard.IsKeyDown(Keys.Left)) { dx --; }
 				if (keyboard.IsKeyDown(Keys.Right)) { dx++; }
