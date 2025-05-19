@@ -166,10 +166,13 @@ namespace FlatGameFor2D
 				{
 					FlatBody bodyB = this.bodyList[j];
 
-					if (Collisions.IntersectPolygons(bodyA.GetTransformedVertices(), bodyB.GetTransformedVertices()))
+					if (Collisions.IntersectPolygons(bodyA.GetTransformedVertices(), bodyB.GetTransformedVertices(), out FlatVector normal, out float depth))
 					{
 						this.outlineColors[i] = Color.Red;
 						this.outlineColors[j] = Color.Red;
+
+						bodyA.Move(-normal * depth / 2f);
+						bodyB.Move(normal * depth / 2f);
 					}
 #if false
 					if (Collisions.IntersectCircles(bodyA.Position, bodyA.radius, bodyB.Position, bodyB.radius, out FlatVector normal, out float depth)) 
