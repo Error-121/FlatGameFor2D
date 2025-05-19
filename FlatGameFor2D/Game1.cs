@@ -75,17 +75,18 @@ namespace FlatGameFor2D
 				float x = RandomHelper.RandomSingle(left + padding, right - padding);
 				float y = RandomHelper.RandomSingle(top - padding, bottom + padding);
 
+				bool isStatic = RandomHelper.RandomBooleon();
 
 				if (type == (int)ShapeType.Circle)
 				{
-					if (!FlatBody.CreateCircleBody(new FlatVector(x, y), 2f, 0.5f, false, 1f, out body, out string errorMessage))
+					if (!FlatBody.CreateCircleBody(new FlatVector(x, y), 2f, 0.5f, isStatic, 1f, out body, out string errorMessage))
 					{
 						throw new Exception();
 					}
 				}
 				else if (type == (int)ShapeType.Box)
 				{
-					if (!FlatBody.CreateBoxBody(new FlatVector(x, y), 2f, 0.5f, false, 2f, 2f, out body, out string errorMessage))
+					if (!FlatBody.CreateBoxBody(new FlatVector(x, y), 2f, 0.5f, isStatic, 1.77f, 1.77f, out body, out string errorMessage))
 					{
 						throw new Exception();
 					}
@@ -96,8 +97,18 @@ namespace FlatGameFor2D
 				}
 
 				this.world.AddBody(body);
-				this.colors[i] = RandomHelper.RandomColor();
-				this.outlineColors[i] = Color.White;
+
+				if (!isStatic)
+				{
+					this.colors[i] = RandomHelper.RandomColor();
+					this.outlineColors[i] = Color.White;
+				}
+				else
+				{
+					this.colors[i] = new Color(40, 40, 40);
+					this.outlineColors[i] = Color.Red;
+				}
+
 
 			}
 
@@ -189,7 +200,7 @@ namespace FlatGameFor2D
 				if (body.shapeType is ShapeType.Circle)
 				{
 					shapes.DrawCircleFill(position, body.radius, 26, colors[i]);
-					shapes.DrawCircle(position, body.radius, 26, Color.White);
+					shapes.DrawCircle(position, body.radius, 26, this.outlineColors[i]);
 				}
 				else if (body.shapeType is ShapeType.Box)
 				{
