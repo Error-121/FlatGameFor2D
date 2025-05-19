@@ -136,7 +136,7 @@ namespace FlatGameFor2D
 
 				float dx = 0f;
 				float dy = 0f;
-				float speed = 8f;
+				float forceMagnitude = 8f;
 
 				if (keyboard.IsKeyDown(Keys.Left)) { dx --; }
 				if (keyboard.IsKeyDown(Keys.Right)) { dx++; }
@@ -150,9 +150,9 @@ namespace FlatGameFor2D
 
 				if (dx != 0f || dy != 0f)
 				{
-					FlatVector direction = FlatMath.Normalize( new FlatVector(dx, dy));
-					FlatVector velocity = direction * speed * FlatUtil.GetElapsedTimeInSeconds(gameTime);
-					body.Move(velocity);
+					FlatVector forceDirection = FlatMath.Normalize( new FlatVector(dx, dy));
+					FlatVector force = forceDirection * forceMagnitude;
+					body.AddForce(force);
 				}
 
 				if (keyboard.IsKeyDown(Keys.R))
