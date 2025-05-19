@@ -65,8 +65,8 @@ namespace FlatGameFor2D
 			for (int i = 0; i < bodyCount; i++)
 			{
 				int type = RandomHelper.RandomInteger(0, 2);
-				type = (int)ShapeType.Circle; // TODO: remove this line to use random shape type
-				type = (int)ShapeType.Box; // TODO: remove this line to use random shape type
+				//type = (int)ShapeType.Circle; // TODO: remove this line to use random shape type
+				//type = (int)ShapeType.Box; // TODO: remove this line to use random shape type
 
 				FlatBody body = null;
 
@@ -166,6 +166,35 @@ namespace FlatGameFor2D
 				{
 					FlatBody bodyB = this.bodyList[j];
 
+
+					if (bodyA.shapeType is ShapeType.Box && bodyB.shapeType is ShapeType.Circle)
+					{
+						if (Collisions.IntersectCirclePolygon(bodyB.Position, bodyB.radius, bodyA.GetTransformedVertices(), out FlatVector normal, out float depth))
+						{
+							this.outlineColors[i] = Color.Red;
+							this.outlineColors[j] = Color.Red;
+
+							bodyA.Move(normal * depth / 2f);
+							bodyB.Move(-normal * depth / 2f);
+						}
+					}
+					else if(bodyB.shapeType is ShapeType.Box && bodyA.shapeType is ShapeType.Circle)
+					{
+						if (Collisions.IntersectCirclePolygon(bodyA.Position, bodyA.radius, bodyB.GetTransformedVertices(), out FlatVector normal, out float depth))
+						{
+							this.outlineColors[i] = Color.Red;
+							this.outlineColors[j] = Color.Red;
+
+							bodyA.Move(-normal * depth / 2f);
+							bodyB.Move(normal * depth / 2f);
+						}
+					}
+					
+
+
+
+#if false
+
 					if (Collisions.IntersectPolygons(bodyA.GetTransformedVertices(), bodyB.GetTransformedVertices(), out FlatVector normal, out float depth))
 					{
 						this.outlineColors[i] = Color.Red;
@@ -174,7 +203,6 @@ namespace FlatGameFor2D
 						bodyA.Move(-normal * depth / 2f);
 						bodyB.Move(normal * depth / 2f);
 					}
-#if false
 					if (Collisions.IntersectCircles(bodyA.Position, bodyA.radius, bodyB.Position, bodyB.radius, out FlatVector normal, out float depth)) 
 					{
 						bodyA.Move(-normal * depth / 2f);
