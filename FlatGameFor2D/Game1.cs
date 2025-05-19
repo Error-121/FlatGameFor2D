@@ -163,7 +163,7 @@ namespace FlatGameFor2D
 
 			this.world.Step(FlatUtil.GetElapsedTimeInSeconds(gameTime));
 
-
+			this.WrapScreen();
 
 			base.Update(gameTime);
 		}
@@ -206,6 +206,29 @@ namespace FlatGameFor2D
 			this.screen.Present(this.sprites);
 
 			base.Draw(gameTime);
+		}
+
+		private void WrapScreen()
+		{
+			this.camera.GetExtents(out Vector2 camMin, out Vector2 camMax);
+
+			float viewWidth = camMax.X - camMin.X;
+			float viewHeight = camMax.Y - camMin.Y;
+
+			for (int i = 0; i < this.world.BodyCount; i++)
+			{
+				if (!this.world.GetBody(i, out FlatBody body))
+				{
+					throw new Exception();
+
+				}
+
+				if (body.Position.X < camMin.X) { body.MoveTo(body.Position + new FlatVector(viewWidth, 0f)); }
+				if (body.Position.X > camMax.X) { body.MoveTo(body.Position - new FlatVector(viewWidth, 0f)); }
+				if (body.Position.Y < camMin.Y) { body.MoveTo(body.Position + new FlatVector(0f, viewHeight)); }
+				if (body.Position.Y > camMax.Y) { body.MoveTo(body.Position - new FlatVector(0f, viewHeight)); }
+
+			}
 		}
 	}
 }
