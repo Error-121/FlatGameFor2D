@@ -23,7 +23,7 @@ namespace FlatGameFor2D
 
 		private List<FlatBody> bodyList;
 		private Color[] colors;
-
+		private Color[] outlineColors;
 
 		private Vector2[] vertexBuffer;
 
@@ -60,6 +60,7 @@ namespace FlatGameFor2D
 
 			this.bodyList = new List<FlatBody>(bodyCount);
 			this.colors = new Color[bodyCount];
+			this.outlineColors = new Color[bodyCount];
 
 			for (int i = 0; i < bodyCount; i++)
 			{
@@ -94,6 +95,7 @@ namespace FlatGameFor2D
 
 				this.bodyList.Add(body);
 				this.colors[i] = RandomHelper.RandomColor();
+				this.outlineColors[i] = Color.White;
 
 			}
 
@@ -150,11 +152,12 @@ namespace FlatGameFor2D
 			for (int i = 0; i < this.bodyList.Count; i++)
 			{
 				FlatBody body = this.bodyList[i];
-				body.Rotate(MathF.PI / 180f * 2f * FlatUtil.GetElapsedTimeInSeconds(gameTime));
+				body.Rotate(MathF.PI / 2f * FlatUtil.GetElapsedTimeInSeconds(gameTime));
+				this.outlineColors[i] = Color.White;
 			}
 
 
-#if false
+
 			for (int i = 0; i < this.bodyList.Count -1 ; i++)
 			{
 				FlatBody bodyA = this.bodyList[i];
@@ -163,14 +166,23 @@ namespace FlatGameFor2D
 				{
 					FlatBody bodyB = this.bodyList[j];
 
+					if (Collisions.IntersectPolygons(bodyA.GetTransformedVertices(), bodyB.GetTransformedVertices()))
+					{
+						this.outlineColors[i] = Color.Red;
+						this.outlineColors[j] = Color.Red;
+					}
+#if false
 					if (Collisions.IntersectCircles(bodyA.Position, bodyA.radius, bodyB.Position, bodyB.radius, out FlatVector normal, out float depth)) 
 					{
 						bodyA.Move(-normal * depth / 2f);
 						bodyB.Move(normal * depth / 2f);
 					}
+
+#endif
+
 				}
 			}
-#endif
+
 
 
 			base.Update(gameTime);
@@ -199,7 +211,7 @@ namespace FlatGameFor2D
 				{
 					FlatConverter.ToVector2Array(body.GetTransformedVertices(), ref this.vertexBuffer);
 					shapes.DrawPolygonFill(this.vertexBuffer, body.triangles, this.colors[i]);
-					shapes.DrawPolygon(this.vertexBuffer, Color.White);
+					shapes.DrawPolygon(this.vertexBuffer, this.outlineColors[i]);
 				}
 				
 			}
