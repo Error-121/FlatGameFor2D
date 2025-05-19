@@ -21,7 +21,8 @@ namespace FlatGameFor2D
 		private Shapes shapes;
 		private Camera camera;
 
-		private List<FlatBody> bodyList;
+		private FlatWorld world;
+
 		private Color[] colors;
 		private Color[] outlineColors;
 
@@ -58,7 +59,8 @@ namespace FlatGameFor2D
 			int bodyCount = 10;
 			float padding = MathF.Abs(right - left) * 0.05f;
 
-			this.bodyList = new List<FlatBody>(bodyCount);
+			this.world = new FlatWorld();
+
 			this.colors = new Color[bodyCount];
 			this.outlineColors = new Color[bodyCount];
 
@@ -93,7 +95,7 @@ namespace FlatGameFor2D
 					throw new Exception("Unknown shape type");
 				}
 
-				this.bodyList.Add(body);
+				this.world.AddBody(body);
 				this.colors[i] = RandomHelper.RandomColor();
 				this.outlineColors[i] = Color.White;
 
@@ -141,78 +143,25 @@ namespace FlatGameFor2D
 				if (keyboard.IsKeyDown(Keys.Up)) { dy++; }
 				if (keyboard.IsKeyDown(Keys.Down)) { dy--; }
 
+				if(!this.world.GetBody(0, out FlatBody body))
+				{
+					throw new Exception("Body not found at the specified index");
+				}
+
 				if (dx != 0f || dy != 0f)
 				{
 					FlatVector direction = FlatMath.Normalize( new FlatVector(dx, dy));
 					FlatVector velocity = direction * speed * FlatUtil.GetElapsedTimeInSeconds(gameTime);
-					this.bodyList[0].Move(velocity);
+					body.Move(velocity);
 				}
-			}
 
-			for (int i = 0; i < this.bodyList.Count; i++)
-			{
-				FlatBody body = this.bodyList[i];
-				body.Rotate(MathF.PI / 2f * FlatUtil.GetElapsedTimeInSeconds(gameTime));
-				this.outlineColors[i] = Color.White;
-			}
-
-
-
-			for (int i = 0; i < this.bodyList.Count -1 ; i++)
-			{
-				FlatBody bodyA = this.bodyList[i];
-
-				for (int j = i + 1; j < this.bodyList.Count; j++)
+				if (keyboard.IsKeyDown(Keys.R))
 				{
-					FlatBody bodyB = this.bodyList[j];
-
-
-					if (bodyA.shapeType is ShapeType.Box && bodyB.shapeType is ShapeType.Circle)
-					{
-						if (Collisions.IntersectCirclePolygon(bodyB.Position, bodyB.radius, bodyA.GetTransformedVertices(), out FlatVector normal, out float depth))
-						{
-							this.outlineColors[i] = Color.Red;
-							this.outlineColors[j] = Color.Red;
-
-							bodyA.Move(normal * depth / 2f);
-							bodyB.Move(-normal * depth / 2f);
-						}
-					}
-					else if(bodyB.shapeType is ShapeType.Box && bodyA.shapeType is ShapeType.Circle)
-					{
-						if (Collisions.IntersectCirclePolygon(bodyA.Position, bodyA.radius, bodyB.GetTransformedVertices(), out FlatVector normal, out float depth))
-						{
-							this.outlineColors[i] = Color.Red;
-							this.outlineColors[j] = Color.Red;
-
-							bodyA.Move(-normal * depth / 2f);
-							bodyB.Move(normal * depth / 2f);
-						}
-					}
-					
-
-
-
-#if false
-
-					if (Collisions.IntersectPolygons(bodyA.GetTransformedVertices(), bodyB.GetTransformedVertices(), out FlatVector normal, out float depth))
-					{
-						this.outlineColors[i] = Color.Red;
-						this.outlineColors[j] = Color.Red;
-
-						bodyA.Move(-normal * depth / 2f);
-						bodyB.Move(normal * depth / 2f);
-					}
-					if (Collisions.IntersectCircles(bodyA.Position, bodyA.radius, bodyB.Position, bodyB.radius, out FlatVector normal, out float depth)) 
-					{
-						bodyA.Move(-normal * depth / 2f);
-						bodyB.Move(normal * depth / 2f);
-					}
-
-#endif
-
+					body.Rotate(MathF.PI / 2f * FlatUtil.GetElapsedTimeInSeconds(gameTime));
 				}
 			}
+
+			this.world.Step(FlatUtil.GetElapsedTimeInSeconds(gameTime));
 
 
 
@@ -228,15 +177,19 @@ namespace FlatGameFor2D
 
 			this.shapes.Begin(this.camera);
 
-			for (int i = 0; i < bodyList.Count; i++)
+			for (int i = 0; i < this.world.BodyCount; i++)
 			{
-				FlatBody body = bodyList[i];
+				if (!this.world.GetBody(i, out FlatBody body))
+				{
+					throw new Exception("Body not found at the specified index");
+				}
+
 				Vector2 position = FlatConverter.ToVector2(body.Position);
 
 				if (body.shapeType is ShapeType.Circle)
 				{
 					shapes.DrawCircleFill(position, body.radius, 26, colors[i]);
-					shapes.DrawCircle(position, body.radius, 26, Color.Black);
+					shapes.DrawCircle(position, body.radius, 26, Color.White);
 				}
 				else if (body.shapeType is ShapeType.Box)
 				{
