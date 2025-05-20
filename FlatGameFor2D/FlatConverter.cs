@@ -13,6 +13,11 @@ namespace FlatGameFor2D
 			return new Vector2(vector.X, vector.Y);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static FlatVector ToFlatVector(Vector2 vector)
+		{
+			return new FlatVector(vector.X, vector.Y);
+		}
 
 		public static void ToVector2Array(FlatVector[] src, ref Vector2[] dst) 
 		{

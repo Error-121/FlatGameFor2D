@@ -23,8 +23,8 @@ namespace FlatGameFor2D
 
 		private FlatWorld world;
 
-		private Color[] colors;
-		private Color[] outlineColors;
+		private List<Color> colors;
+		private List<Color> outlineColors;
 
 		private Vector2[] vertexBuffer;
 
@@ -56,61 +56,24 @@ namespace FlatGameFor2D
 			this.camera.GetExtents(out float left, out float right, out float top, out float bottom);
 			
 			
-			int bodyCount = 20;
-			float padding = MathF.Abs(right - left) * 0.05f;
+			
+			this.colors = new List<Color>();
+			this.outlineColors = new List<Color>();
 
 			this.world = new FlatWorld();
-
-			this.colors = new Color[bodyCount];
-			this.outlineColors = new Color[bodyCount];
-
-			for (int i = 0; i < bodyCount; i++)
+			
+			float padding = MathF.Abs(right - left) * 0.10f;
+			
+			
+			if (!FlatBody.CreateBoxBody(right - left - padding * 2, 3f, new FlatVector(0, -10), 1f, true, 0.5f, out FlatBody groundBody, out string errorMessage))
 			{
-				int type = RandomHelper.RandomInteger(0, 2);
-				//type = (int)ShapeType.Circle; // TODO: remove this line to use random shape type
-				//type = (int)ShapeType.Box; // TODO: remove this line to use random shape type
-
-				FlatBody body = null;
-
-				float x = RandomHelper.RandomSingle(left + padding, right - padding);
-				float y = RandomHelper.RandomSingle(top - padding, bottom + padding);
-
-				bool isStatic = RandomHelper.RandomBooleon();
-
-				if (type == (int)ShapeType.Circle)
-				{
-					if (!FlatBody.CreateCircleBody(new FlatVector(x, y), 2f, 0.5f, isStatic, 1f, out body, out string errorMessage))
-					{
-						throw new Exception();
-					}
-				}
-				else if (type == (int)ShapeType.Box)
-				{
-					if (!FlatBody.CreateBoxBody(new FlatVector(x, y), 2f, 0.5f, isStatic, 1.77f, 1.77f, out body, out string errorMessage))
-					{
-						throw new Exception();
-					}
-				}
-				else 
-				{
-					throw new Exception("Unknown shape type");
-				}
-
-				this.world.AddBody(body);
-
-				if (!isStatic)
-				{
-					this.colors[i] = RandomHelper.RandomColor();
-					this.outlineColors[i] = Color.White;
-				}
-				else
-				{
-					this.colors[i] = new Color(40, 40, 40);
-					this.outlineColors[i] = Color.Red;
-				}
-
-
+				throw new Exception(errorMessage);
 			}
+
+			this.world.AddBody(groundBody);
+
+			this.colors.Add(Color.DarkGreen);
+			this.outlineColors.Add(Color.White);
 
 			base.Initialize();
 		}
@@ -127,6 +90,40 @@ namespace FlatGameFor2D
 
 			keyboard.Update();
 			mouse.Update();
+
+			// add box body
+			if (mouse.IsLeftMouseButtonPressed())
+			{
+				float width = RandomHelper.RandomSingle(1f, 2f);
+				float height = RandomHelper.RandomSingle(1f, 2f);
+
+				FlatVector mouseWorldPosition = FlatConverter.ToFlatVector(mouse.GetMouseWorldPosition(this, this.screen, this.camera));
+
+				if(!FlatBody.CreateBoxBody(width, height, mouseWorldPosition, 2f, false, 0.6f, out FlatBody body, out string errorMessage))
+				{
+					throw new Exception(errorMessage);
+				}
+
+				this.world.AddBody(body);
+				this.colors.Add(RandomHelper.RandomColor());
+				this.outlineColors.Add(Color.White);
+			}
+			// add circle body
+			if (mouse.IsRightMouseButtonPressed())
+			{
+				float radius = RandomHelper.RandomSingle(0.75f, 1.25f);
+
+				FlatVector mouseWorldPosition = FlatConverter.ToFlatVector(mouse.GetMouseWorldPosition(this, this.screen, this.camera));
+
+				if (!FlatBody.CreateCircleBody(radius, mouseWorldPosition, 2f, false, 0.6f, out FlatBody body, out string errorMessage))
+				{
+					throw new Exception(errorMessage);
+				}
+
+				this.world.AddBody(body);
+				this.colors.Add(RandomHelper.RandomColor());
+				this.outlineColors.Add(Color.White);
+			}
 
 			if (keyboard.IsKeyAvailable)
 			{
@@ -145,6 +142,7 @@ namespace FlatGameFor2D
 					this.camera.DecZoom();
 				}
 
+#if false
 				float dx = 0f;
 				float dy = 0f;
 				float forceMagnitude = 24f;
@@ -170,11 +168,13 @@ namespace FlatGameFor2D
 				{
 					body.Rotate(MathF.PI / 2f * FlatUtil.GetElapsedTimeInSeconds(gameTime));
 				}
+#endif
+
 			}
 
 			this.world.Step(FlatUtil.GetElapsedTimeInSeconds(gameTime));
 
-			this.WrapScreen();
+			
 
 			base.Update(gameTime);
 		}
