@@ -20,6 +20,7 @@ namespace FlatGameFor2D
 		private Sprites _sprites;
 		private Shapes _shapes;
 		private Camera _camera;
+		private SpriteFont fontConsolas18;
 
 		private FlatWorld _world;
 
@@ -29,6 +30,15 @@ namespace FlatGameFor2D
 		private Vector2[] _vertexBuffer;
 
 		private Stopwatch _watch;
+
+
+		private double _totalWorldStepTime = 0d;
+		private int _totalBodyCount = 0;
+		private int _totalSampleCount = 0;
+		private Stopwatch _sampleTimer = new Stopwatch();
+
+		private string _worldStepTimeString = string.Empty;
+		private string _bodyCountString = string.Empty;
 
 		public Game1()
 		{
@@ -80,6 +90,7 @@ namespace FlatGameFor2D
 
 
 			this._watch = new Stopwatch();
+			this._sampleTimer.Start();
 
 			base.Initialize();
 		}
@@ -87,6 +98,7 @@ namespace FlatGameFor2D
 		protected override void LoadContent()
 		{
 			// TODO: use this.Content to load your game content here
+			this.fontConsolas18 = this.Content.Load<SpriteFont>("Consolas18");
 		}
 
 		protected override void Update(GameTime gameTime)
@@ -184,9 +196,24 @@ namespace FlatGameFor2D
 
 			}
 
+			if (this._sampleTimer.Elapsed.TotalSeconds > 1d)
+			{
+				this._bodyCountString = "BodyCount: " + Math.Round(this._totalBodyCount / (double)this._totalSampleCount, 4).ToString();
+				this._worldStepTimeString = "WorldStepTime: " + Math.Round(this._totalWorldStepTime / (double)this._totalSampleCount, 4).ToString();
+				
+				this._totalBodyCount = 0;
+				this._totalWorldStepTime = 0d;
+				this._totalSampleCount = 0;
+				this._sampleTimer.Restart();
+			}
+
 			this._watch.Restart();
 			this._world.Step(FlatUtil.GetElapsedTimeInSeconds(gameTime), 20);
 			this._watch.Stop();
+
+			this._totalWorldStepTime += this._watch.Elapsed.TotalMilliseconds;
+			this._totalBodyCount += this._world.BodyCount;
+			this._totalSampleCount++;
 
 			this._camera.GetExtents(out _, out _, out float viewBottom, out _);
 			
@@ -249,6 +276,14 @@ namespace FlatGameFor2D
 			}
 
 			this._shapes.End();
+
+
+			Vector2 stringSize = this.fontConsolas18.MeasureString(this._bodyCountString);
+
+			this._sprites.Begin();
+			this._sprites.DrawString(this.fontConsolas18, this._bodyCountString, new Vector2(0, 0), Color.White);
+			this._sprites.DrawString(this.fontConsolas18, this._worldStepTimeString, new Vector2(0, stringSize.Y), Color.White);
+			this._sprites.End();
 
 			this._screen.Unset();
 			this._screen.Present(this._sprites);
