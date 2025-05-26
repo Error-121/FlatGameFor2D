@@ -15,24 +15,25 @@ namespace FlatGameFor2D
 {
     public class Game1 : Game
     {
-		private GraphicsDeviceManager graphics;
-		private Screen screen;
-		private Sprites sprites;
-		private Shapes shapes;
-		private Camera camera;
+		private GraphicsDeviceManager _graphics;
+		private Screen _screen;
+		private Sprites _sprites;
+		private Shapes _shapes;
+		private Camera _camera;
 
-		private FlatWorld world;
+		private FlatWorld _world;
 
-		private List<Color> colors;
-		private List<Color> outlineColors;
+		private List<Color> _colors;
+		private List<Color> _outlineColors;
 
-		private Vector2[] vertexBuffer;
+		private Vector2[] _vertexBuffer;
 
+		private Stopwatch _watch;
 
 		public Game1()
 		{
-			this.graphics = new GraphicsDeviceManager(this);
-			this.graphics.SynchronizeWithVerticalRetrace = true;
+			this._graphics = new GraphicsDeviceManager(this);
+			this._graphics.SynchronizeWithVerticalRetrace = true;
 
 			this.Content.RootDirectory = "Content";
 			this.IsMouseVisible = true;
@@ -45,22 +46,22 @@ namespace FlatGameFor2D
 		protected override void Initialize()
 		{
 
-			FlatUtil.SetRelativeBackBufferSize(this.graphics, 0.85f);
+			FlatUtil.SetRelativeBackBufferSize(this._graphics, 0.85f);
 
-			this.screen = new Screen(this, 1280, 768);
-			this.sprites = new Sprites(this);
-			this.shapes = new Shapes(this);
-			this.camera = new Camera(this.screen);
-			this.camera.Zoom = 24;
+			this._screen = new Screen(this, 1280, 768);
+			this._sprites = new Sprites(this);
+			this._shapes = new Shapes(this);
+			this._camera = new Camera(this._screen);
+			this._camera.Zoom = 24;
 
-			this.camera.GetExtents(out float left, out float right, out float top, out float bottom);
+			this._camera.GetExtents(out float left, out float right, out float top, out float bottom);
 			
 			
 			
-			this.colors = new List<Color>();
-			this.outlineColors = new List<Color>();
+			this._colors = new List<Color>();
+			this._outlineColors = new List<Color>();
 
-			this.world = new FlatWorld();
+			this._world = new FlatWorld();
 			
 			float padding = MathF.Abs(right - left) * 0.10f;
 			
@@ -70,10 +71,15 @@ namespace FlatGameFor2D
 				throw new Exception(errorMessage);
 			}
 
-			this.world.AddBody(groundBody);
+			this._world.AddBody(groundBody);
 
-			this.colors.Add(Color.DarkGreen);
-			this.outlineColors.Add(Color.White);
+			this._colors.Add(Color.DarkGreen);
+			this._outlineColors.Add(Color.White);
+
+
+
+
+			this._watch = new Stopwatch();
 
 			base.Initialize();
 		}
@@ -97,39 +103,40 @@ namespace FlatGameFor2D
 				float width = RandomHelper.RandomSingle(1f, 2f);
 				float height = RandomHelper.RandomSingle(1f, 2f);
 
-				FlatVector mouseWorldPosition = FlatConverter.ToFlatVector(mouse.GetMouseWorldPosition(this, this.screen, this.camera));
+				FlatVector mouseWorldPosition = FlatConverter.ToFlatVector(mouse.GetMouseWorldPosition(this, this._screen, this._camera));
 
 				if(!FlatBody.CreateBoxBody(width, height, mouseWorldPosition, 2f, false, 0.6f, out FlatBody body, out string errorMessage))
 				{
 					throw new Exception(errorMessage);
 				}
 
-				this.world.AddBody(body);
-				this.colors.Add(RandomHelper.RandomColor());
-				this.outlineColors.Add(Color.White);
+				this._world.AddBody(body);
+				this._colors.Add(RandomHelper.RandomColor());
+				this._outlineColors.Add(Color.White);
 			}
 			// add circle body
 			if (mouse.IsRightMouseButtonPressed())
 			{
 				float radius = RandomHelper.RandomSingle(0.75f, 1.25f);
 
-				FlatVector mouseWorldPosition = FlatConverter.ToFlatVector(mouse.GetMouseWorldPosition(this, this.screen, this.camera));
+				FlatVector mouseWorldPosition = FlatConverter.ToFlatVector(mouse.GetMouseWorldPosition(this, this._screen, this._camera));
 
 				if (!FlatBody.CreateCircleBody(radius, mouseWorldPosition, 2f, false, 0.6f, out FlatBody body, out string errorMessage))
 				{
 					throw new Exception(errorMessage);
 				}
 
-				this.world.AddBody(body);
-				this.colors.Add(RandomHelper.RandomColor());
-				this.outlineColors.Add(Color.White);
+				this._world.AddBody(body);
+				this._colors.Add(RandomHelper.RandomColor());
+				this._outlineColors.Add(Color.White);
 			}
 
 			if (keyboard.IsKeyAvailable)
 			{
 				if (keyboard.IsKeyClicked(Keys.P))
 				{
-					Console.WriteLine($"BodyCount: {this.world.BodyCount}");
+					Console.WriteLine($"BodyCount: {this._world.BodyCount}");
+					Console.WriteLine($"StepTime: {Math.Round(this._watch.Elapsed.TotalMilliseconds, 4)}");
 					Console.WriteLine();
 				}
 				if (keyboard.IsKeyClicked(Keys.Escape))
@@ -139,12 +146,12 @@ namespace FlatGameFor2D
 
 				if (keyboard.IsKeyClicked(Keys.A))
 				{
-					this.camera.IncZoom();
+					this._camera.IncZoom();
 				}
 
 				if (keyboard.IsKeyClicked(Keys.S))
 				{
-					this.camera.DecZoom();
+					this._camera.DecZoom();
 				}
 
 #if false
@@ -177,25 +184,26 @@ namespace FlatGameFor2D
 
 			}
 
-			this.world.Step(FlatUtil.GetElapsedTimeInSeconds(gameTime));
+			this._watch.Restart();
+			this._world.Step(FlatUtil.GetElapsedTimeInSeconds(gameTime), 20);
+			this._watch.Stop();
 
-
-			this.camera.GetExtents(out _, out _, out float viewBottom, out _);
+			this._camera.GetExtents(out _, out _, out float viewBottom, out _);
 			
-			for (int i = 0; i < this.world.BodyCount; i++)
+			for (int i = 0; i < this._world.BodyCount; i++)
 			{
-				if (!this.world.GetBody(i, out FlatBody body))
+				if (!this._world.GetBody(i, out FlatBody body))
 				{
 					throw new ArgumentException();
 				}
 				
 				FlatAABB box = body.GetAABB();
 
-				if (box.Max.Y < viewBottom)
+				if (box._max._Y < viewBottom)
 				{
-					this.world.RemoveBody(body);
-					this.colors.RemoveAt(i);
-					this.outlineColors.RemoveAt(i);
+					this._world.RemoveBody(body);
+					this._colors.RemoveAt(i);
+					this._outlineColors.RemoveAt(i);
 				}
 			}
 
@@ -204,16 +212,16 @@ namespace FlatGameFor2D
 
 		protected override void Draw(GameTime gameTime)
 		{
-			this.screen.Set();
+			this._screen.Set();
 			this.GraphicsDevice.Clear(new Color(50, 60, 70));
 
 			
 
-			this.shapes.Begin(this.camera);
+			this._shapes.Begin(this._camera);
 
-			for (int i = 0; i < this.world.BodyCount; i++)
+			for (int i = 0; i < this._world.BodyCount; i++)
 			{
-				if (!this.world.GetBody(i, out FlatBody body))
+				if (!this._world.GetBody(i, out FlatBody body))
 				{
 					throw new Exception("Body not found at the specified index");
 				}
@@ -222,45 +230,45 @@ namespace FlatGameFor2D
 
 				if (body.shapeType is ShapeType.Circle)
 				{
-					shapes.DrawCircleFill(position, body.radius, 26, colors[i]);
-					shapes.DrawCircle(position, body.radius, 26, this.outlineColors[i]);
+					_shapes.DrawCircleFill(position, body._radius, 26, _colors[i]);
+					_shapes.DrawCircle(position, body._radius, 26, this._outlineColors[i]);
 				}
 				else if (body.shapeType is ShapeType.Box)
 				{
-					FlatConverter.ToVector2Array(body.GetTransformedVertices(), ref this.vertexBuffer);
-					shapes.DrawPolygonFill(this.vertexBuffer, body.triangles, this.colors[i]);
-					shapes.DrawPolygon(this.vertexBuffer, this.outlineColors[i]);
+					FlatConverter.ToVector2Array(body.GetTransformedVertices(), ref this._vertexBuffer);
+					_shapes.DrawPolygonFill(this._vertexBuffer, body._triangles, this._colors[i]);
+					_shapes.DrawPolygon(this._vertexBuffer, this._outlineColors[i]);
 				}
 				
 			}
 
-			this.shapes.End();
+			this._shapes.End();
 
-			this.screen.Unset();
-			this.screen.Present(this.sprites);
+			this._screen.Unset();
+			this._screen.Present(this._sprites);
 
 			base.Draw(gameTime);
 		}
 
 		private void WrapScreen()
 		{
-			this.camera.GetExtents(out Vector2 camMin, out Vector2 camMax);
+			this._camera.GetExtents(out Vector2 camMin, out Vector2 camMax);
 
 			float viewWidth = camMax.X - camMin.X;
 			float viewHeight = camMax.Y - camMin.Y;
 
-			for (int i = 0; i < this.world.BodyCount; i++)
+			for (int i = 0; i < this._world.BodyCount; i++)
 			{
-				if (!this.world.GetBody(i, out FlatBody body))
+				if (!this._world.GetBody(i, out FlatBody body))
 				{
 					throw new Exception();
 
 				}
 
-				if (body.Position.X < camMin.X) { body.MoveTo(body.Position + new FlatVector(viewWidth, 0f)); }
-				if (body.Position.X > camMax.X) { body.MoveTo(body.Position - new FlatVector(viewWidth, 0f)); }
-				if (body.Position.Y < camMin.Y) { body.MoveTo(body.Position + new FlatVector(0f, viewHeight)); }
-				if (body.Position.Y > camMax.Y) { body.MoveTo(body.Position - new FlatVector(0f, viewHeight)); }
+				if (body.Position._X < camMin.X) { body.MoveTo(body.Position + new FlatVector(viewWidth, 0f)); }
+				if (body.Position._X > camMax.X) { body.MoveTo(body.Position - new FlatVector(viewWidth, 0f)); }
+				if (body.Position._Y < camMin.Y) { body.MoveTo(body.Position + new FlatVector(0f, viewHeight)); }
+				if (body.Position._Y > camMax.Y) { body.MoveTo(body.Position - new FlatVector(0f, viewHeight)); }
 
 			}
 		}

@@ -10,7 +10,7 @@ namespace FlatGameFor2D
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static Vector2 ToVector2(FlatVector vector)
 		{
-			return new Vector2(vector.X, vector.Y);
+			return new Vector2(vector._X, vector._Y);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -29,7 +29,7 @@ namespace FlatGameFor2D
 			for (int i = 0; i < src.Length; i++)
 			{
 				FlatVector vector = src[i];
-				dst[i] = new Vector2(vector.X, vector.Y);
+				dst[i] = new Vector2(vector._X, vector._Y);
 			}
 
 		}
