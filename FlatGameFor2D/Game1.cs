@@ -82,11 +82,29 @@ namespace FlatGameFor2D
 			}
 
 			this._world.AddBody(groundBody);
-
 			this._colors.Add(Color.DarkGreen);
 			this._outlineColors.Add(Color.White);
 
 
+			if (!FlatBody.CreateBoxBody(20f, 2f, new FlatVector(-10, 3), 1f, true, 0.5f, out FlatBody ledgeBodyOne, out errorMessage))
+			{
+				throw new Exception(errorMessage);
+			}
+
+			ledgeBodyOne.Rotate(-MathHelper.TwoPi / 20f); // Rotate the ledge to create an angle
+			this._world.AddBody(ledgeBodyOne);
+			this._colors.Add(Color.DarkGray);
+			this._outlineColors.Add(Color.White);
+
+			if (!FlatBody.CreateBoxBody(15f, 2f, new FlatVector(10, 10), 1f, true, 0.5f, out FlatBody ledgeBodyTwo, out errorMessage))
+			{
+				throw new Exception(errorMessage);
+			}
+
+			ledgeBodyTwo.Rotate(MathHelper.TwoPi / 20f); // Rotate the ledge to create an angle
+			this._world.AddBody(ledgeBodyTwo);
+			this._colors.Add(Color.DarkRed);
+			this._outlineColors.Add(Color.White);
 
 
 			this._watch = new Stopwatch();
