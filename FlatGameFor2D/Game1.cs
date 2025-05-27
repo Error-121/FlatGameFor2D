@@ -23,10 +23,8 @@ namespace FlatGameFor2D
 		private SpriteFont fontConsolas18;
 
 		private FlatWorld _world;
-
-		private List<Color> _colors;
-
-		private Vector2[] _vertexBuffer;
+		private List<FlatEntity> _entityList;
+		private List<FlatEntity> _entityRemoveList;
 
 		private Stopwatch _watch;
 
@@ -54,6 +52,7 @@ namespace FlatGameFor2D
 
 		protected override void Initialize()
 		{
+			this.Window.Position = new Point(10, 40);
 
 			FlatUtil.SetRelativeBackBufferSize(this._graphics, 0.85f);
 
@@ -61,18 +60,16 @@ namespace FlatGameFor2D
 			this._sprites = new Sprites(this);
 			this._shapes = new Shapes(this);
 			this._camera = new Camera(this._screen);
-			this._camera.Zoom = 24;
+			this._camera.Zoom = 20;
 
 			this._camera.GetExtents(out float left, out float right, out float top, out float bottom);
-			
-			
-			
-			this._colors = new List<Color>();
 
+
+			this._entityList = new List<FlatEntity>();
+			this._entityRemoveList = new List<FlatEntity>();
 			this._world = new FlatWorld();
 			
 			float padding = MathF.Abs(right - left) * 0.10f;
-			
 			
 			if (!FlatBody.CreateBoxBody(right - left - padding * 2, 3f, 1f, true, 0.5f, out FlatBody groundBody, out string errorMessage))
 			{
@@ -81,7 +78,7 @@ namespace FlatGameFor2D
 
 			groundBody.MoveTo(new FlatVector(0, -10));
 			this._world.AddBody(groundBody);
-			this._colors.Add(Color.DarkGreen);
+			this._entityList.Add(new FlatEntity(groundBody, Color.DarkGreen));
 
 
 			if (!FlatBody.CreateBoxBody(20f, 2f, 1f, true, 0.5f, out FlatBody ledgeBodyOne, out errorMessage))
@@ -92,7 +89,7 @@ namespace FlatGameFor2D
 			ledgeBodyOne.MoveTo(new FlatVector(-10, 3)); // Move the ledge to a specific position
 			ledgeBodyOne.Rotate(-MathHelper.TwoPi / 20f); // Rotate the ledge to create an angle
 			this._world.AddBody(ledgeBodyOne);
-			this._colors.Add(Color.DarkGray);
+			this._entityList.Add(new FlatEntity(ledgeBodyOne, Color.DarkGray));
 
 			if (!FlatBody.CreateBoxBody(15f, 2f, 1f, true, 0.5f, out FlatBody ledgeBodyTwo, out errorMessage))
 			{
@@ -102,7 +99,7 @@ namespace FlatGameFor2D
 			ledgeBodyTwo.MoveTo(new FlatVector(10, 10)); // Move the ledge to a specific position
 			ledgeBodyTwo.Rotate(MathHelper.TwoPi / 20f); // Rotate the ledge to create an angle
 			this._world.AddBody(ledgeBodyTwo);
-			this._colors.Add(Color.DarkRed);
+			this._entityList.Add(new FlatEntity(ledgeBodyTwo, Color.DarkRed));
 
 
 			this._watch = new Stopwatch();
@@ -128,35 +125,21 @@ namespace FlatGameFor2D
 			// add box body
 			if (mouse.IsLeftMouseButtonPressed())
 			{
-				float width = RandomHelper.RandomSingle(1f, 2f);
-				float height = RandomHelper.RandomSingle(1f, 2f);
+				float width = RandomHelper.RandomSingle(2f, 3f);
+				float height = RandomHelper.RandomSingle(2f, 3f);
 
 				FlatVector mouseWorldPosition = FlatConverter.ToFlatVector(mouse.GetMouseWorldPosition(this, this._screen, this._camera));
 
-				if(!FlatBody.CreateBoxBody(width, height, 2f, false, 0.6f, out FlatBody body, out string errorMessage))
-				{
-					throw new Exception(errorMessage);
-				}
-
-				body.MoveTo(mouseWorldPosition);
-				this._world.AddBody(body);
-				this._colors.Add(RandomHelper.RandomColor());
+				this._entityList.Add(new FlatEntity(this._world, width, height, false, mouseWorldPosition));
 			}
 			// add circle body
 			if (mouse.IsRightMouseButtonPressed())
 			{
-				float radius = RandomHelper.RandomSingle(0.75f, 1.25f);
+				float radius = RandomHelper.RandomSingle(1f, 1.25f);
 
 				FlatVector mouseWorldPosition = FlatConverter.ToFlatVector(mouse.GetMouseWorldPosition(this, this._screen, this._camera));
 
-				if (!FlatBody.CreateCircleBody(radius, 2f, false, 0.6f, out FlatBody body, out string errorMessage))
-				{
-					throw new Exception(errorMessage);
-				}
-
-				body.MoveTo(mouseWorldPosition);
-				this._world.AddBody(body);
-				this._colors.Add(RandomHelper.RandomColor());
+				this._entityList.Add(new FlatEntity(this._world, radius, false, mouseWorldPosition));
 			}
 
 			if (keyboard.IsKeyAvailable)
@@ -182,34 +165,6 @@ namespace FlatGameFor2D
 					this._camera.DecZoom();
 				}
 
-#if false
-				float dx = 0f;
-				float dy = 0f;
-				float forceMagnitude = 24f;
-
-				if (keyboard.IsKeyDown(Keys.Left)) { dx --; }
-				if (keyboard.IsKeyDown(Keys.Right)) { dx++; }
-				if (keyboard.IsKeyDown(Keys.Up)) { dy++; }
-				if (keyboard.IsKeyDown(Keys.Down)) { dy--; }
-
-				if(!this.world.GetBody(0, out FlatBody body))
-				{
-					throw new Exception("Body not found at the specified index");
-				}
-
-				if (dx != 0f || dy != 0f)
-				{
-					FlatVector forceDirection = FlatMath.Normalize( new FlatVector(dx, dy));
-					FlatVector force = forceDirection * forceMagnitude;
-					body.AddForce(force);
-				}
-
-				if (keyboard.IsKeyDown(Keys.R))
-				{
-					body.Rotate(MathF.PI / 2f * FlatUtil.GetElapsedTimeInSeconds(gameTime));
-				}
-#endif
-
 			}
 
 			if (this._sampleTimer.Elapsed.TotalSeconds > 1d)
@@ -232,21 +187,32 @@ namespace FlatGameFor2D
 			this._totalSampleCount++;
 
 			this._camera.GetExtents(out _, out _, out float viewBottom, out _);
-			
-			for (int i = 0; i < this._world.BodyCount; i++)
+
+			this._entityRemoveList.Clear();
+
+			for (int i = 0; i < this._entityList.Count; i++)
 			{
-				if (!this._world.GetBody(i, out FlatBody body))
+				FlatEntity entity = this._entityList[i];
+				FlatBody body = entity._body;
+
+				if (body._isStatic)
 				{
-					throw new ArgumentException();
+					continue; // Skip static bodies
 				}
-				
+
 				FlatAABB box = body.GetAABB();
 
 				if (box._max._Y < viewBottom)
 				{
-					this._world.RemoveBody(body);
-					this._colors.RemoveAt(i);
+					this._entityRemoveList.Add(entity); // Add to remove list if the body is below the view
 				}
+			}
+
+			for (int i = 0; i < this._entityRemoveList.Count; i++)
+			{
+				FlatEntity entity = this._entityRemoveList[i];
+				this._world.RemoveBody(entity._body);
+				this._entityList.Remove(entity);
 			}
 
 			base.Update(gameTime);
@@ -261,26 +227,9 @@ namespace FlatGameFor2D
 
 			this._shapes.Begin(this._camera);
 
-			for (int i = 0; i < this._world.BodyCount; i++)
+			for (int i = 0; i < this._entityList.Count; i++)
 			{
-				if (!this._world.GetBody(i, out FlatBody body))
-				{
-					throw new Exception("Body not found at the specified index");
-				}
-
-				Vector2 position = FlatConverter.ToVector2(body.Position);
-
-				if (body._shapeType is ShapeType.Circle)
-				{
-					_shapes.DrawCircleFill(position, body._radius, 26, _colors[i]);
-					_shapes.DrawCircle(position, body._radius, 26, Color.White);
-				}
-				else if (body._shapeType is ShapeType.Box)
-				{
-					_shapes.DrawBoxFill(position, body._width, body._height, body.Angle, this._colors[i]);
-					_shapes.DrawBox(position, body._width, body._height, body.Angle, Color.White);
-				}
-				
+				this._entityList[i].Draw(this._shapes);
 			}
 
 			List<FlatVector> contactPoints = this._world?._ContactPointsList;
@@ -305,29 +254,6 @@ namespace FlatGameFor2D
 			this._screen.Present(this._sprites);
 
 			base.Draw(gameTime);
-		}
-
-		private void WrapScreen()
-		{
-			this._camera.GetExtents(out Vector2 camMin, out Vector2 camMax);
-
-			float viewWidth = camMax.X - camMin.X;
-			float viewHeight = camMax.Y - camMin.Y;
-
-			for (int i = 0; i < this._world.BodyCount; i++)
-			{
-				if (!this._world.GetBody(i, out FlatBody body))
-				{
-					throw new Exception();
-
-				}
-
-				if (body.Position._X < camMin.X) { body.MoveTo(body.Position + new FlatVector(viewWidth, 0f)); }
-				if (body.Position._X > camMax.X) { body.MoveTo(body.Position - new FlatVector(viewWidth, 0f)); }
-				if (body.Position._Y < camMin.Y) { body.MoveTo(body.Position + new FlatVector(0f, viewHeight)); }
-				if (body.Position._Y > camMax.Y) { body.MoveTo(body.Position - new FlatVector(0f, viewHeight)); }
-
-			}
 		}
 	}
 }
