@@ -25,7 +25,6 @@ namespace FlatGameFor2D
 		private FlatWorld _world;
 
 		private List<Color> _colors;
-		private List<Color> _outlineColors;
 
 		private Vector2[] _vertexBuffer;
 
@@ -69,42 +68,41 @@ namespace FlatGameFor2D
 			
 			
 			this._colors = new List<Color>();
-			this._outlineColors = new List<Color>();
 
 			this._world = new FlatWorld();
 			
 			float padding = MathF.Abs(right - left) * 0.10f;
 			
 			
-			if (!FlatBody.CreateBoxBody(right - left - padding * 2, 3f, new FlatVector(0, -10), 1f, true, 0.5f, out FlatBody groundBody, out string errorMessage))
+			if (!FlatBody.CreateBoxBody(right - left - padding * 2, 3f, 1f, true, 0.5f, out FlatBody groundBody, out string errorMessage))
 			{
 				throw new Exception(errorMessage);
 			}
 
+			groundBody.MoveTo(new FlatVector(0, -10));
 			this._world.AddBody(groundBody);
 			this._colors.Add(Color.DarkGreen);
-			this._outlineColors.Add(Color.White);
 
 
-			if (!FlatBody.CreateBoxBody(20f, 2f, new FlatVector(-10, 3), 1f, true, 0.5f, out FlatBody ledgeBodyOne, out errorMessage))
+			if (!FlatBody.CreateBoxBody(20f, 2f, 1f, true, 0.5f, out FlatBody ledgeBodyOne, out errorMessage))
 			{
 				throw new Exception(errorMessage);
 			}
 
+			ledgeBodyOne.MoveTo(new FlatVector(-10, 3)); // Move the ledge to a specific position
 			ledgeBodyOne.Rotate(-MathHelper.TwoPi / 20f); // Rotate the ledge to create an angle
 			this._world.AddBody(ledgeBodyOne);
 			this._colors.Add(Color.DarkGray);
-			this._outlineColors.Add(Color.White);
 
-			if (!FlatBody.CreateBoxBody(15f, 2f, new FlatVector(10, 10), 1f, true, 0.5f, out FlatBody ledgeBodyTwo, out errorMessage))
+			if (!FlatBody.CreateBoxBody(15f, 2f, 1f, true, 0.5f, out FlatBody ledgeBodyTwo, out errorMessage))
 			{
 				throw new Exception(errorMessage);
 			}
 
+			ledgeBodyTwo.MoveTo(new FlatVector(10, 10)); // Move the ledge to a specific position
 			ledgeBodyTwo.Rotate(MathHelper.TwoPi / 20f); // Rotate the ledge to create an angle
 			this._world.AddBody(ledgeBodyTwo);
 			this._colors.Add(Color.DarkRed);
-			this._outlineColors.Add(Color.White);
 
 
 			this._watch = new Stopwatch();
@@ -135,14 +133,14 @@ namespace FlatGameFor2D
 
 				FlatVector mouseWorldPosition = FlatConverter.ToFlatVector(mouse.GetMouseWorldPosition(this, this._screen, this._camera));
 
-				if(!FlatBody.CreateBoxBody(width, height, mouseWorldPosition, 2f, false, 0.6f, out FlatBody body, out string errorMessage))
+				if(!FlatBody.CreateBoxBody(width, height, 2f, false, 0.6f, out FlatBody body, out string errorMessage))
 				{
 					throw new Exception(errorMessage);
 				}
 
+				body.MoveTo(mouseWorldPosition);
 				this._world.AddBody(body);
 				this._colors.Add(RandomHelper.RandomColor());
-				this._outlineColors.Add(Color.White);
 			}
 			// add circle body
 			if (mouse.IsRightMouseButtonPressed())
@@ -151,14 +149,14 @@ namespace FlatGameFor2D
 
 				FlatVector mouseWorldPosition = FlatConverter.ToFlatVector(mouse.GetMouseWorldPosition(this, this._screen, this._camera));
 
-				if (!FlatBody.CreateCircleBody(radius, mouseWorldPosition, 2f, false, 0.6f, out FlatBody body, out string errorMessage))
+				if (!FlatBody.CreateCircleBody(radius, 2f, false, 0.6f, out FlatBody body, out string errorMessage))
 				{
 					throw new Exception(errorMessage);
 				}
 
+				body.MoveTo(mouseWorldPosition);
 				this._world.AddBody(body);
 				this._colors.Add(RandomHelper.RandomColor());
-				this._outlineColors.Add(Color.White);
 			}
 
 			if (keyboard.IsKeyAvailable)
@@ -248,7 +246,6 @@ namespace FlatGameFor2D
 				{
 					this._world.RemoveBody(body);
 					this._colors.RemoveAt(i);
-					this._outlineColors.RemoveAt(i);
 				}
 			}
 
@@ -273,16 +270,15 @@ namespace FlatGameFor2D
 
 				Vector2 position = FlatConverter.ToVector2(body.Position);
 
-				if (body.shapeType is ShapeType.Circle)
+				if (body._shapeType is ShapeType.Circle)
 				{
 					_shapes.DrawCircleFill(position, body._radius, 26, _colors[i]);
-					_shapes.DrawCircle(position, body._radius, 26, this._outlineColors[i]);
+					_shapes.DrawCircle(position, body._radius, 26, Color.White);
 				}
-				else if (body.shapeType is ShapeType.Box)
+				else if (body._shapeType is ShapeType.Box)
 				{
-					FlatConverter.ToVector2Array(body.GetTransformedVertices(), ref this._vertexBuffer);
-					_shapes.DrawPolygonFill(this._vertexBuffer, body._triangles, this._colors[i]);
-					_shapes.DrawPolygon(this._vertexBuffer, this._outlineColors[i]);
+					_shapes.DrawBoxFill(position, body._width, body._height, body.Angle, this._colors[i]);
+					_shapes.DrawBox(position, body._width, body._height, body.Angle, Color.White);
 				}
 				
 			}
