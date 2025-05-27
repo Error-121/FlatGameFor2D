@@ -232,14 +232,6 @@ namespace FlatGameFor2D
 				this._entityList[i].Draw(this._shapes);
 			}
 
-			List<FlatVector> contactPoints = this._world?._ContactPointsList;
-			for (int i = 0; i < contactPoints.Count; i++)
-			{
-				Vector2 contactPositon = FlatConverter.ToVector2(contactPoints[i]);
-				_shapes.DrawBoxFill(contactPositon, 0.3f, 0.3f, Color.Red);
-				_shapes.DrawBox(contactPositon, 0.3f, 0.3f, Color.White);
-			}
-
 			this._shapes.End();
 
 
